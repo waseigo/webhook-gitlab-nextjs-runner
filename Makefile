@@ -3,7 +3,7 @@
 TARGET := webhook
 MODULE_NAME := example.com/webhook
 
-all: build deploy
+all: build
 
 build: init
 	CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o $(TARGET) .
