@@ -1,7 +1,6 @@
 .PHONY: all clean
 
 TARGET := webhook
-MODULE_NAME := example.com/webhook
 
 all: build
 
