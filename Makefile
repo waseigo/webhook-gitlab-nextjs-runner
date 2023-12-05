@@ -1,6 +1,8 @@
 .PHONY: all clean
 
 TARGET := webhook
+MODULE_NAME := waseigo/webhook-gitlab-nextjs-runner
+
 
 all: build
 
