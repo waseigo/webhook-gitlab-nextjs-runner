@@ -2,13 +2,15 @@
 
 I'm using this program to automatically rebuild and restart a NextJS app whenever a commit is pushed to the app's git repo on Gitlab.
 
+There is actually nothing specific to either Gitlab (besides the `X-Gitlab-Token` header in the `authenticate()` function) or NextJS, and the program can be modified to work with any header, and to kill any process (not only `npm start`) based on the port the process occupies.
+
 ## Build
 
 `make build`
 
 ## Setup
 
-First, on the machine where your NextJS app will run, do a `git clone` of your repo.
+First do a `git clone` of your repo on the machine where your NextJS app will run.
 
 Edit `run_webhook.sh` and provide the following environment variables:
 * `GIT_REPO_PATH`: the on-disk location of your cloned repo,
@@ -26,7 +28,7 @@ Upon launch, the program performs a `git pull` and, if needed, will install depe
 
 If your app has already been running, it keeps running, except if the `git pull` indicates that there are updates.
 
-Each webhook request triggers a `git pull`. Upon that: if there are changes, the program terminates any running process occupying the specified port (default: 3000) or any already-running `npm start` command and does the following:
+Each webhook request triggers a `git pull`. Upon that: if there are changes, the program terminates any running process occupying the specified port (default: 3000) and does the following:
 1. `npm install`
 2. `npm run build`, and
 3. `npm start` in a goroutine.
@@ -34,39 +36,23 @@ Each webhook request triggers a `git pull`. Upon that: if there are changes, the
 ## Example output
 
 ```
-2023-12-07T23:40:20+02:00       💪 Performing initial setup…
-2023-12-07T23:40:20+02:00       🤷 No process found on port 3000
-2023-12-07T23:40:20+02:00       📡 Performing 'git pull'…
-2023-12-07T23:40:22+02:00       🤷 The repository is already up to date. No further actions needed.
-2023-12-07T23:40:22+02:00       ✅ Git pull completed
-2023-12-07T23:40:22+02:00       💪 Rebuilding is required!
-2023-12-07T23:40:22+02:00       🪦 Killing 'npm start'…
-2023-12-07T23:40:22+02:00       🤷 No process found on port 3000
-2023-12-07T23:40:22+02:00       🤷 No process found on port 3000
-2023-12-07T23:40:22+02:00       🛠️  Running 'npm install'…
-2023-12-07T23:40:25+02:00       ✅ 'npm install' completed
-2023-12-07T23:40:25+02:00       🏗️  Running 'npm run build'…
-2023-12-07T23:41:00+02:00       ✅ 'npm run build' completed
-2023-12-07T23:41:00+02:00       🥳 Update completed and 'npm start' issued.
-2023-12-07T23:41:00+02:00       📟 Starting the webhook server on port 8000
-2023-12-07T23:41:27+02:00       🤝 Received a valid secret token from Gitlab
-2023-12-07T23:41:27+02:00       ⚠️ 'git push' detected. Performing 'git pull' to see if an update is required.
-2023-12-07T23:41:27+02:00       📡 Performing 'git pull'…
-2023-12-07T23:41:28+02:00       🤷 The repository is already up to date. No further actions needed.
-2023-12-07T23:41:28+02:00       ✅ Git pull completed
-2023-12-07T23:41:28+02:00       😴 No changes in the Git repository since the last 'npm run build'. Skipping update.
-2023-12-08T00:08:24+02:00       🤝 Received a valid secret token from Gitlab
-2023-12-08T00:08:24+02:00       ⚠️ 'git push' detected. Performing 'git pull' to see if an update is required.
-2023-12-08T00:08:24+02:00       📡 Performing 'git pull'…
-2023-12-08T00:08:25+02:00       ✅ Git pull completed
-2023-12-08T00:08:25+02:00       💪 Rebuilding is required!
-2023-12-08T00:08:25+02:00       🪦 Killing 'npm start'…
-2023-12-08T00:08:25+02:00       ✅ Found PID of process running on port 3000: 13266
-2023-12-08T00:08:25+02:00       🪦 Killing process with PID 13266 on port 3000
-2023-12-08T00:08:25+02:00       🛠️  Running 'npm install'…
-2023-12-08T00:08:28+02:00       ✅ 'npm install' completed
-2023-12-08T00:08:28+02:00       🏗️  Running 'npm run build'…
-2023-12-08T00:08:55+02:00       ✅ 'npm run build' completed
-2023-12-08T00:08:55+02:00       🥳 Update completed and 'npm start' issued.
-
+$ ./run_webhook.sh
+2023-12-08T00:42:54+02:00       🛋️ Performing initial setup…
+2023-12-08T00:42:54+02:00       🔎 Checking whether 'npm start' is already running on port 3000
+2023-12-08T00:42:54+02:00       ✅ Found PID of process running on port 3000: 14140
+2023-12-08T00:42:54+02:00       🤷 The app was running already; will not update
+2023-12-08T00:42:54+02:00       🚀 Starting the webhook server on port 8000
+2023-12-08T00:51:07+02:00       🤝 Received a valid secret token from Gitlab
+2023-12-08T00:51:07+02:00       ⚠️ 'git push' detected
+2023-12-08T00:51:07+02:00       📡 Performing 'git pull'…
+2023-12-08T00:51:09+02:00       ✅ 'git pull' completed
+2023-12-08T00:51:09+02:00       🔃 Rebuilding required
+2023-12-08T00:51:09+02:00       💣 Killing 'npm start'…
+2023-12-08T00:51:09+02:00       ✅ Found PID of process running on port 3000: 14140
+2023-12-08T00:51:09+02:00       💣 Killing process with PID 14140
+2023-12-08T00:51:09+02:00       🛠️ Running 'npm install'…
+2023-12-08T00:51:11+02:00       ✅ 'npm install' completed
+2023-12-08T00:51:11+02:00       🏗️ Running 'npm run build'…
+2023-12-08T00:51:40+02:00       ✅ 'npm run build' completed
+2023-12-08T00:51:40+02:00       🥳 Update completed and 'npm start' issued
 ```
