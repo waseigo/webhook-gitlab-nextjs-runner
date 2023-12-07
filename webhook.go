@@ -49,7 +49,7 @@ func authenticate(w http.ResponseWriter, r *http.Request) error {
 
 	apiKey := os.Getenv("WEBHOOK_SECRET_TOKEN")
 	if apiKeyHeader != apiKey {
-		http.Error(w, genTimestamp()+"💩 Invalid secret token!", http.StatusForbidden)
+		http.Error(w, genTimestamp()+"💩 Invalid secret token", http.StatusForbidden)
 		return fmt.Errorf(genTimestamp() + "🚫 Invalid secret token")
 	}
 	return nil
@@ -82,7 +82,7 @@ func gitPull(gitRepoPath string) (bool, error) {
 
 	output := string(outputBytes)
 	if strings.Contains(output, "Already up to date.") {
-		fmt.Println(genTimestamp() + "🤷 The repository is already up to date. No further actions needed.")
+		fmt.Println(genTimestamp() + "🤷 Already up to date; no further actions required")
 		return false, nil
 	}
 
@@ -101,7 +101,7 @@ func npmStart(gitRepoPath string) error {
 		if err != nil {
 			fmt.Println(genTimestamp()+"💩 Error running 'npm start':", err)
 		} else {
-			fmt.Println(genTimestamp() + "🚀 'npm start' is running!")
+			fmt.Println(genTimestamp() + "🚀 'npm start' is running")
 		}
 	}()
 
@@ -118,7 +118,7 @@ func webhookHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, genTimestamp()+" Webhook request received")
 
 	go func() {
-		fmt.Println(genTimestamp() + "⚠️ 'git push' detected. Performing 'git pull' to see if an update is required.")
+		fmt.Println(genTimestamp() + "⚠️ 'git push' detected")
 
 		err := updatePipeline()
 		if err != nil {
@@ -187,7 +187,7 @@ func killProcessOnPort(port string) error {
 	}
 
 	if pid != 0 {
-		fmt.Printf(genTimestamp()+"💣 Killing process with PID %d on port %s\n", pid, port)
+		fmt.Println(genTimestamp()+"💣 Killing process with PID", pid)
 		return exec.Command("kill", fmt.Sprintf("%d", pid)).Run()
 	}
 
@@ -238,12 +238,12 @@ func updatePipeline() error {
 	if err != nil {
 		return fmt.Errorf(genTimestamp()+"💩 Error during 'git pull': %v", err)
 	}
-	fmt.Println(genTimestamp() + "✅ Git pull completed")
+	fmt.Println(genTimestamp() + "✅ 'git pull' completed")
 
 	buildRequired := thereAreGitChanges || (firstRun && !isAlreadyRunning)
 
 	if buildRequired {
-		fmt.Println(genTimestamp() + "🔃 Rebuilding is required!")
+		fmt.Println(genTimestamp() + "🔃 Rebuilding required")
 
 		err = killNpmStartIfRunning()
 		if err != nil {
@@ -262,7 +262,7 @@ func updatePipeline() error {
 
 		firstRun = false
 	} else {
-		fmt.Println(genTimestamp() + "😴 No changes in the Git repository since the last 'npm run build'. Skipping update.")
+		fmt.Println(genTimestamp() + "😴 No changes on git since the last 'npm run build', thus skipping update")
 		return nil
 	}
 
@@ -271,7 +271,7 @@ func updatePipeline() error {
 		return fmt.Errorf(genTimestamp()+"💩 Error in 'npm start': %v", err)
 	}
 
-	fmt.Println(genTimestamp() + "🥳 Update completed and 'npm start' issued.")
+	fmt.Println(genTimestamp() + "🥳 Update completed and 'npm start' issued")
 	return nil
 }
 
@@ -302,14 +302,14 @@ func main() {
 	isAlreadyRunning = (pid != 0)
 
 	if !isAlreadyRunning {
-		fmt.Println(genTimestamp() + "🤔 The app was not running already; time to update and start it!")
+		fmt.Println(genTimestamp() + "🤔 The app was not running already; time to update and start it")
 		err := updatePipeline()
 		if err != nil {
 			fmt.Println(genTimestamp()+"💩 Error during initial setup:", err)
 			return
 		}
 	} else {
-		fmt.Println(genTimestamp() + "🤷 The app was running already; will not update!")
+		fmt.Println(genTimestamp() + "🤷 The app was running already; will not update")
 	}
 
 	webhookPort := getWebhookPort()
@@ -321,7 +321,7 @@ func main() {
 	if err != nil {
 		fmt.Println(genTimestamp()+"💩 Error starting the webhook server:", err)
 	} else {
-		fmt.Println(genTimestamp() + "📟 Webhook server started!")
+		fmt.Println(genTimestamp() + "📟 Webhook server started")
 	}
 
 }
