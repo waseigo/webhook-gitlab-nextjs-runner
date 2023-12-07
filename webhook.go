@@ -18,7 +18,6 @@ import (
 )
 
 var mu sync.Mutex
-var stopSignal chan struct{}
 var wg sync.WaitGroup
 var firstRun bool
 var isAlreadyRunning bool
@@ -129,22 +128,10 @@ func webhookHandler(w http.ResponseWriter, r *http.Request) {
 
 func killNpmStartIfRunning() error {
 
-	if stopSignal != nil {
-		close(stopSignal)
-
-		go func() {
-			wg.Wait() // Wait for the npm start goroutine to complete
-			fmt.Println(genTimestamp() + "🪦 'npm start' was already running in a goroutine. Stopping it.")
-		}()
-		return nil
-	}
-
-	if isAlreadyRunning {
-		port := getNpmPort()
-		fmt.Println(genTimestamp() + "🪦 'npm start' was already running before this program was launched. Killing it.")
-		killProcessOnPort(port)
-		isAlreadyRunning = false
-	}
+	port := getNpmPort()
+	fmt.Println(genTimestamp() + "🪦 Killing 'npm start'…")
+	killProcessOnPort(port)
+	isAlreadyRunning = false
 
 	return nil
 }
@@ -277,7 +264,6 @@ func updatePipeline() error {
 		return nil
 	}
 
-	stopSignal = make(chan struct{})
 	err = npmStart(gitRepoPath)
 	if err != nil {
 		return fmt.Errorf(genTimestamp()+"💩 Error in 'npm start': %v", err)
