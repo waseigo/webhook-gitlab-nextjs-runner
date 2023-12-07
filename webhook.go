@@ -100,6 +100,8 @@ func npmStart(gitRepoPath string) error {
 		err := cmd.Run()
 		if err != nil {
 			fmt.Println(genTimestamp()+"💩 Error running 'npm start':", err)
+		} else {
+			fmt.Println(genTimestamp() + "🚀 'npm start' is running!")
 		}
 	}()
 
@@ -129,7 +131,7 @@ func webhookHandler(w http.ResponseWriter, r *http.Request) {
 func killNpmStartIfRunning() error {
 
 	port := getNpmPort()
-	fmt.Println(genTimestamp() + "🪦 Killing 'npm start'…")
+	fmt.Println(genTimestamp() + "💣 Killing 'npm start'…")
 	killProcessOnPort(port)
 	isAlreadyRunning = false
 
@@ -185,7 +187,7 @@ func killProcessOnPort(port string) error {
 	}
 
 	if pid != 0 {
-		fmt.Printf(genTimestamp()+"🪦 Killing process with PID %d on port %s\n", pid, port)
+		fmt.Printf(genTimestamp()+"💣 Killing process with PID %d on port %s\n", pid, port)
 		return exec.Command("kill", fmt.Sprintf("%d", pid)).Run()
 	}
 
@@ -241,7 +243,7 @@ func updatePipeline() error {
 	buildRequired := thereAreGitChanges || (firstRun && !isAlreadyRunning)
 
 	if buildRequired {
-		fmt.Println(genTimestamp() + "💪 Rebuilding is required!")
+		fmt.Println(genTimestamp() + "🔃 Rebuilding is required!")
 
 		err = killNpmStartIfRunning()
 		if err != nil {
@@ -292,29 +294,34 @@ func getWebhookPort() string {
 func main() {
 	firstRun = true
 
-	fmt.Println(genTimestamp() + "💪 Performing initial setup…")
+	fmt.Println(genTimestamp() + "🛋️ Performing initial setup…")
 
 	npmPort := getNpmPort()
+	fmt.Println(genTimestamp()+"🔎 Checking whether 'npm start' is already running on port ", npmPort)
 	pid, _ := getProcessIDOnPort(npmPort)
 	isAlreadyRunning = (pid != 0)
 
 	if !isAlreadyRunning {
+		fmt.Println(genTimestamp() + "🤔 The app was not running already; time to update and start it!")
 		err := updatePipeline()
 		if err != nil {
 			fmt.Println(genTimestamp()+"💩 Error during initial setup:", err)
 			return
 		}
 	} else {
-		fmt.Println(genTimestamp() + "🤷 The app was already running; will not update!")
+		fmt.Println(genTimestamp() + "🤷 The app was running already; will not update!")
 	}
 
 	webhookPort := getWebhookPort()
-	fmt.Println(genTimestamp() + "📟 Starting the webhook server on port " + webhookPort)
+	fmt.Println(genTimestamp()+"🚀 Starting the webhook server on port ", webhookPort)
 
 	http.HandleFunc("/webhook", webhookHandler)
 
 	err := http.ListenAndServe(":"+webhookPort, nil)
 	if err != nil {
 		fmt.Println(genTimestamp()+"💩 Error starting the webhook server:", err)
+	} else {
+		fmt.Println(genTimestamp() + "📟 Webhook server started!")
 	}
+
 }
