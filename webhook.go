@@ -297,7 +297,7 @@ func main() {
 	fmt.Println(genTimestamp() + "🛋️ Performing initial setup…")
 
 	npmPort := getNpmPort()
-	fmt.Println(genTimestamp()+"🔎 Checking whether 'npm start' is already running on port ", npmPort)
+	fmt.Println(genTimestamp()+"🔎 Checking whether 'npm start' is already running on port", npmPort)
 	pid, _ := getProcessIDOnPort(npmPort)
 	isAlreadyRunning = (pid != 0)
 
@@ -313,7 +313,7 @@ func main() {
 	}
 
 	webhookPort := getWebhookPort()
-	fmt.Println(genTimestamp()+"🚀 Starting the webhook server on port ", webhookPort)
+	fmt.Println(genTimestamp()+"🚀 Starting the webhook server on port", webhookPort)
 
 	http.HandleFunc("/webhook", webhookHandler)
 
